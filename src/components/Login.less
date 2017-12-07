@@ -1,0 +1,46 @@
+.normal {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url('../assets/bg.jpg');
+    background-size: cover;
+    position: relative;
+}
+
+.normal h1{
+    position: absolute;
+    top: 15vh;
+    color: #fff;
+    font-size: 30px;
+    animation: logo 2s linear infinite;
+}
+
+.login_form {
+    width: 80vw;
+    max-width: 350px;
+    background-color: rgba(0,0,0,.3);
+    border-radius: 15px;
+    padding: 30px 30px 0;
+}
+
+.login_form_forgot {
+    float: right;
+}
+
+.login_form_button {
+    width: 100%;
+}
+
+@keyframes logo {
+    0%{
+        transform: scale(1)
+    }
+    50%{
+        transform: scale(1.2)
+    }
+    100%{
+        transform: scale(1)
+    }
+}
