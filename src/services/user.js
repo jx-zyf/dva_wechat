@@ -24,3 +24,15 @@ export async function fakeEdit(params) {
         body: JSON.stringify(params),
     });
 }
+export async function getPersonalInfo(params) {
+    return request(`http://localhost:8080/user/getPersonalInfo`, {
+        method: 'POST',
+        body: JSON.stringify(params),
+    });
+}
+export async function setPersonalInfo(params) {
+    return request(`http://localhost:8080/user/setPersonalInfo`, {
+        method: 'POST',
+        body: JSON.stringify(params),
+    });
+}

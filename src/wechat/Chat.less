@@ -24,10 +24,13 @@
         }
         p.msg_l, p.msg_r {
             .timeSpan {
+                color: #666;
+            }
+            .userSpan {
                 cursor: pointer;
                 color: #0094ff;
             }
-            .timeSpan:hover {
+            .userSpan:hover {
                 text-decoration: underline;
             }
             .msg {
@@ -67,7 +70,7 @@
         }
         p.msg_l {
             float: left;
-            .timeSpan, .msg {
+            .timeSpan, .userSpan, .msg {
                 float: left;
             }
             .msg {
@@ -81,7 +84,7 @@
         }
         p.msg_r {
             float: right;
-            .timeSpan, .msg {
+            .timeSpan, .userSpan, .msg {
                 float: right;
             }
             .msg {

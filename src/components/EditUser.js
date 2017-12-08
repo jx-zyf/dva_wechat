@@ -77,14 +77,10 @@ class EditUser extends PureComponent {
 
         return (
             <PageHeaderLayout defaultSelectedKeys={['3']}>
-                <Card bordered={false}>
-                    <Button onClick={this.backUrl}>返回</Button>
+                <Card bordered={false} title="修改密码" extra={<Button onClick={this.backUrl}>返回</Button>}>
                     <Spin spinning={loading}>
                         <Form onSubmit={this.handleSubmit}>
-                            <FormItem
-                                {...formItemConfig}
-                                label="旧密码"
-                            >
+                            <FormItem {...formItemConfig} label="旧密码" >
                                 {getFieldDecorator('old_pwd', {
                                     rules: [
                                         { required: true, message: '请输入旧密码' },
@@ -94,11 +90,7 @@ class EditUser extends PureComponent {
                                     <Input type="password" placeholder="请输入旧密码" />
                                     )}
                             </FormItem>
-                            <FormItem
-                                {...formItemConfig}
-                                label="新密码"
-                                extra="6-16个字符"
-                            >
+                            <FormItem {...formItemConfig} label="新密码" extra="6-16个字符" >
                                 {getFieldDecorator('new_pwd', {
                                     rules: [
                                         { required: true, message: '请输入新密码' },
@@ -108,11 +100,7 @@ class EditUser extends PureComponent {
                                     <Input type="password" placeholder="请输入新密码" />
                                     )}
                             </FormItem>
-                            <FormItem
-                                {...formItemConfig}
-                                label="确认密码"
-                                extra="6-16个字符"
-                            >
+                            <FormItem {...formItemConfig} label="确认密码" extra="6-16个字符" >
                                 {getFieldDecorator('certain_pwd', {
                                     rules: [
                                         { validator: this.checkCertain },
@@ -122,15 +110,11 @@ class EditUser extends PureComponent {
                                     <Input type="password" placeholder="请输入确认密码" />
                                     )}
                             </FormItem>
-                            <FormItem
-                                wrapperCol={{ span: 18 }}
-                                style={{ textAlign: 'right' }}
-                            >
+                            <FormItem wrapperCol={{ span: 18 }} style={{ textAlign: 'right' }} >
                                 <Button type="primary" htmlType="submit" loading={loading}>提交</Button>
                             </FormItem>
                         </Form>
                     </Spin>
-
                 </Card>
             </PageHeaderLayout>
         );

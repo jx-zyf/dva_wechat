@@ -1,4 +1,4 @@
-import { fakeRegist, fakeLogin, fakeLogout, fakeEdit } from '../services/user'
+import { fakeRegist, fakeLogin, fakeLogout, fakeEdit, getPersonalInfo, setPersonalInfo } from '../services/user'
 import { message } from 'antd';
 import localStorage from '../utils/localStorage';
 
@@ -11,6 +11,8 @@ export default {
       curUser: '',
       loading: false,
       resetStatus: false,
+      curUserInfo: {},
+      setPersonalStatus: false,
   },
 
   effects: {
@@ -102,7 +104,34 @@ export default {
         type: 'changeLoading',
         payload: false
       });
-    }
+    },
+    *getPersonal({ payload }, { call, put }) {
+      const response = yield call(getPersonalInfo, payload);
+      if (response.data.success) {
+          yield put({
+          type: 'getPersonalHandle',
+          payload: response.data.result
+        });
+      }
+    },
+    *setPersonal({ payload }, { call, put }) {
+      yield put({
+        type: 'changeLoading',
+        payload: true
+      });
+      const response = yield call(setPersonalInfo, payload);
+      if (response.data.success) {
+        message.success('修改成功！');
+        yield put({
+          type: 'setPersonalHandle',
+          payload: true
+        });
+      }
+      yield put({
+        type: 'changeLoading',
+        payload: false
+      });
+    },
   },
 
   reducers: {
@@ -143,6 +172,12 @@ export default {
     },
     resetpwdHandle(state, { payload }) {
       return { ...state, resetStatus: payload}
+    },
+    getPersonalHandle(state, { payload}) {
+      return { ...state, curUserInfo: payload}
+    },
+    setPersonalHandle(state, { payload }) {
+      return { ...state, setPersonalStatus: payload}
     },
   },
 };

@@ -181,7 +181,8 @@ class Chat extends Component {
                     <div key={index} className={styles.msgList}>
                         {item.user === localStorage.fetch('curUser') &&
                             <p data-user={item.user} className={styles.msg_r} style={{ color: item.color }}>
-                                <span className={styles.timeSpan}>：({item.date}) {item.user}</span>
+                                <span className={styles.userSpan} data-id="user">&nbsp;{item.user} </span>
+                                <span className={styles.timeSpan}>：({item.date})</span>
                                 {item.type === 'text' &&
                                     <span className={styles.msg} dangerouslySetInnerHTML={{__html:item.msg}}></span>
                                 }
@@ -198,7 +199,8 @@ class Chat extends Component {
                         }
                         {item.user !== '系统' && item.user !== localStorage.fetch('curUser') &&
                             <p data-user={item.user} className={styles.msg_l} style={{ color: item.color }}>
-                                <span className={styles.timeSpan}>{item.user} ({item.date})：</span>
+                                <span className={styles.userSpan} data-id="user"> {item.user}&nbsp;</span>
+                                <span className={styles.timeSpan}>({item.date})：</span>
                                 {item.type === 'text' &&
                                     <span className={styles.msg} dangerouslySetInnerHTML={{__html:item.msg}}></span>
                                 }

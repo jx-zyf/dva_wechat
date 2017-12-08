@@ -6,6 +6,7 @@ import About from './components/About';
 import Login from './routes/Login';
 import Regist from './routes/Regist';
 import EditUser from './routes/EditUser';
+import Personal from './routes/Personal';
 
 function RouterConfig({ history }) {
   return (
@@ -14,6 +15,7 @@ function RouterConfig({ history }) {
         <Route path="/user/regist" component={Regist} />
         <Route path="/user/login" component={Login} />
         <Route path="/user/edit" component={EditUser} />
+        <Route path="/user/personal" component={Personal} />
         <Route path="/about" component={About} />
         <Route path="/" component={WeChat} />
         <Redirect to="/" />

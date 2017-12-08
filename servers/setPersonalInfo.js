@@ -1,7 +1,7 @@
 var MongoClient=require('mongodb').MongoClient;
 var DB_STR="mongodb://localhost:27017/login";
 
-function edit(req,res){
+function setPersonalInfo(req,res){
     var qStr='';
     req.addListener('data',function(datapart){
         qStr+=datapart;
@@ -15,23 +15,21 @@ function edit(req,res){
                 return;
             }
             // 检测用户是否存在
-            collection.find({userName:obj.userName},{_id:0}).toArray(function(err,result){
+            collection.find({userName: obj.userName},{_id:0}).toArray(function(err,result){
                 if (result!='') {
-                    if (result[0].password === obj.old_pwd) {
-                        collection.update({userName:obj.userName}, { $set: { password: obj.new_pwd } } );
-                        res.send({
-                            success: true
-                        })
-                        db.close();
-                        res.end();
-                    } else {
-                        res.send({
-                            success: false,
-                            errMsg: '原密码输入有误，请核对后输入'
-                        });
-                        db.close();
-                        res.end();
-                    }
+                    collection.update({ userName: obj.userName }, {
+                        $set: {
+                            sex: obj.sex, 
+                            birth: obj.birth, 
+                            city: obj.city, 
+                            signature: obj.signature
+                        }
+                    });
+                    res.send({
+                        success: true
+                    });
+                    db.close();
+                    res.end();
                 } else {
                     res.send({
                         success: false,
@@ -45,4 +43,4 @@ function edit(req,res){
     });
 }
 
-module.exports=edit;
+module.exports=setPersonalInfo;

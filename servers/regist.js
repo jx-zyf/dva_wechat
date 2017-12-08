@@ -21,7 +21,13 @@ function regist(req, res) {
             collection.find({ userName: obj.userName }, { _id: 0 }).toArray(function (err, result) {
                 if (result == '') {
                     // 新用户
-                    collection.insert(obj);
+                    collection.insert({
+                        ...obj,
+                        sex: 'secret',
+                        birth: '1996/06/02',
+                        city: '江西省/赣州市/南康区',
+                        signature: '随遇而安'
+                    });
                     res.send('1');
                     db.close();
                     res.end();
