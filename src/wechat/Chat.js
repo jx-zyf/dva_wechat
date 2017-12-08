@@ -20,14 +20,14 @@ class Chat extends Component {
             imgSrc: '',
         }
     }
-    componentDidUpdate() {
+    componentDidMount() {
         const _this = this;
         if (localStorage.fetch('curUser') !== null) {
-            const { curUser } = this.props.user;
+            const { user: { curUser, inlineUsers }, dispatch } = this.props;
             this.socket.emit('login', curUser);
-            this.socket.on('login_success', () => {
+            this.socket.on('login_success', (nickname) => {
                 this.socket.on('system', function (nickname, userCount, type) {
-                    let msg = nickname + (type === 'login' ? ' 加入了' : '离开了') + '聊天！';
+                    let msg = nickname + (type === 'login' ? ' 加入了' : '离开了') + '房间！';
                     if (userCount !== _this.state.userCount) {
                         // 组件加载完毕再setState
                         if (_this.mountd) {
@@ -43,16 +43,27 @@ class Chat extends Component {
             this.socket.on('newMsg', function (userName, msg, color, type) {
                 _this.sendMsg(userName, msg, color, type);
             });
+            // 从数据库获取历史消息
+            dispatch({
+                type: 'chat/getMsg'
+            });
         }
     }
     componentWillUnmount() {
         this.mountd = false;
-        const { chat: { msgList }, dispatch } = this.props;
+        const { dispatch, user: { curUser }, chat: { msgList } } = this.props;
         if (msgList.length > 0) {
             dispatch({
                 type: 'chat/clearSystem'
             });
         }
+        this.socket.emit('leave_room', curUser);
+        // 将消息存到数据库
+        let filterMsgList = msgList.filter(item => item.user !== "系统");
+        dispatch({
+            type: 'chat/saveMsg',
+            payload: filterMsgList
+        });
     }
     sendMsg = (user, msg, color, type) => {
         const { dispatch } = this.props;

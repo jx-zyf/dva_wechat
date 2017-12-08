@@ -1,13 +1,23 @@
+import { saveChatMsg, getChatMsg } from '../services/chat';
 
 export default {
   namespace: 'chat',
 
   state: {
-        msgList: [],
+        msgList: []
   },
 
   effects: {
-    
+    *saveMsg({ payload }, { call, put }){
+        yield call(saveChatMsg, payload);
+    },
+    *getMsg({ payload }, { call, put }){
+        const response = yield call(getChatMsg);
+        yield put({
+            type: 'getHistoryChatMsg',
+            payload: response.data.result
+        });
+    },
   },
 
   reducers: {
@@ -25,6 +35,9 @@ export default {
     },
     clearScreen(state) {
         return { ...state, msgList: []}
-    }
+    },
+    getHistoryChatMsg(state, { payload }) {
+        return { ...state, msgList: payload}
+    },
   },
 };

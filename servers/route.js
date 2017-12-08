@@ -4,6 +4,8 @@ const logout = require('./logout.js');
 const edit = require('./edit.js');
 const getPersonalInfo = require('./getPersonalInfo.js');
 const setPersonalInfo = require('./setPersonalInfo.js');
+const setChatMsg = require('./setChatMsg.js');
+const getChatMsg = require('./getChatMsg.js');
 
 var route = function (req, res, operation) {
     switch (operation) {
@@ -24,6 +26,12 @@ var route = function (req, res, operation) {
             break;
         case 'setPersonalInfo':
             setPersonalInfo(req, res);
+            break;
+        case 'setChatMsg':
+            setChatMsg(req, res);
+            break;
+        case 'getChatMsg':
+            getChatMsg(req, res);
             break;
         default: break;
     }

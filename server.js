@@ -17,6 +17,13 @@ app.post('/user/:operation',function(req,res,next){
     var operation=req.params.operation;
     route(req,res,operation);
 });
+app.post('/chat/:operation',function(req,res,next){
+    var operation=req.params.operation;
+    route(req,res,operation);
+});
+app.get('/chat/getChatMsg', function(req,res,next){
+    route(req,res,'getChatMsg')
+});
 
 var server = http.createServer(app);
 
@@ -30,16 +37,27 @@ io.on('connection', function(socket){
     // 监听登录
     socket.on('login', function(nickname){
         socket.userName = nickname;
-        users.push(nickname);
-        users = Array.from(new Set(users));
-        users = users.filter((item) => item !== '');
-        socket.emit('login_success');
-        io.sockets.emit('system', nickname, users.length, 'login');    // 向所有连接到服务器的客户端发送当前登陆用户的昵称
+        if(!users.includes(nickname)){
+            users.push(nickname);
+            // console.log("刚刚登录的是："+nickname, "在线的："+users)
+            socket.emit('login_success', nickname);
+            io.sockets.emit('system', nickname, users.length, 'login');    // 向所有连接到服务器的客户端发送当前登陆用户的昵称
+        }
     });
     // 监听登出
     socket.on('logout', function(nickname){
         users = users.filter(item => item !== nickname);
         socket.broadcast.emit('system', nickname, users.length, 'loginout');     // 除自己外
+    });
+    socket.on('leave_room', function(nickname){
+        users = users.filter(item => item !== nickname);
+        // console.log("离开房间的是："+socket.userName, "在线的："+users)
+        socket.broadcast.emit('system', nickname, users.length, 'loginout');     // 除自己外
+    });
+    socket.on('disconnect', () => {
+        users = users.filter(item => item !== socket.userName);
+        // console.log("断开连接的是："+socket.userName, "在线的："+users)
+        socket.broadcast.emit('system', socket.userName, users.length, 'loginout');     // 除自己外
     });
     // 监听发消息
     socket.on('sendMsg', function(msg, color, type){

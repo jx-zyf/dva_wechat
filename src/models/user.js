@@ -8,7 +8,7 @@ export default {
   state: {
       status: undefined,
       login: undefined,
-      curUser: '',
+      curUser: localStorage.fetch('curUser'),
       loading: false,
       resetStatus: false,
       curUserInfo: {},
