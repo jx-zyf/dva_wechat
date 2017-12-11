@@ -14,15 +14,14 @@ function setChatMsg(req, res) {
                 console.log(err);
                 return;
             }
-            collection.remove({});
-            obj.forEach((item) => {
-                collection.insert(item);
+            collection.find({userNaem: obj.userNaem, date: obj.date, msg: obj.msg}, {_id: 0}).toArray(function(err,result){
+                if(result == ''){
+                    collection.insert(obj);
+                    res.send({ success: true });
+                    db.close();
+                    res.end();
+                }
             });
-            res.send({
-                success: true
-            });
-            db.close();
-            res.end();
         });
     });
 }

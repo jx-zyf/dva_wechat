@@ -4,7 +4,8 @@ export default {
   namespace: 'chat',
 
   state: {
-        msgList: []
+    msgList: [],
+    newMsgList: {},
   },
 
   effects: {
@@ -24,7 +25,8 @@ export default {
     save(state, action) {
         return {
             ...state,
-            msgList: state.msgList.concat(action.msg)
+            msgList: state.msgList.concat(action.msg),
+            newMsgList: action.msg,
         }
     },
     clearSystem(state) {

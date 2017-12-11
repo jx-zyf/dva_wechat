@@ -18,6 +18,7 @@ class Chat extends Component {
             userCount: 0,
             visible: false,
             imgSrc: '',
+            infoVisible: false,
         }
     }
     componentDidMount() {
@@ -58,17 +59,20 @@ class Chat extends Component {
             });
         }
         this.socket.emit('leave_room', curUser);
+    }
+    componentDidUpdate() {
+        const { dispatch, chat: { newMsgList } } = this.props;
         // 将消息存到数据库
-        let filterMsgList = msgList.filter(item => item.user !== "系统");
-        dispatch({
-            type: 'chat/saveMsg',
-            payload: filterMsgList
-        });
+        if (newMsgList.user !== '系统' && newMsgList.msg) {
+            dispatch({
+                type: 'chat/saveMsg',
+                payload: newMsgList
+            });
+        }
     }
     sendMsg = (user, msg, color, type) => {
         const { dispatch } = this.props;
-        var date = new Date().toTimeString().substr(0, 8);
-        var date_old = date;
+        var date = new Date().toLocaleDateString() + ' ' + new Date().toTimeString().substr(0, 8);
         var color = color || '#000';
         dispatch({
             type: 'chat/save',
@@ -155,9 +159,9 @@ class Chat extends Component {
         }
     }
     // 表情字符串转化成img
-    showTusiji (msg) {
+    showTusiji(msg) {
         var match, result = msg,
-            reg =  /\[tusiji:\d+\]/g,
+            reg = /\[tusiji:\d+\]/g,
             emojiIndex;
         while (match = reg.exec(msg)) {
             emojiIndex = match[0].slice(8, -1);
@@ -177,9 +181,28 @@ class Chat extends Component {
         });
         message.success('清屏成功！');
     }
+    // 查看用户资料
+    showUserInfo = (e) => {
+        const { dispatch, user: { curUserInfo, clickUserInfo } } = this.props;
+        dispatch({
+            type: 'user/getPersonal',
+            payload: e.target.getAttribute('data-id')
+        });
+        this.infoShowModal();
+    }
+    infoShowModal = () => {
+        this.setState({
+            infoVisible: true,
+        });
+    }
+    infoHideModal = () => {
+        this.setState({
+            infoVisible: false,
+        });
+    }
     render() {
         const { userCount } = this.state;
-        const { chat: { msgList }, dispatch } = this.props;
+        const { chat: { msgList }, dispatch, user: { clickUserInfo } } = this.props;
         // 展示消息
         if (msgList.length > 0) {
             for (var i = msgList.length - 1; i >= 0; i--) {
@@ -192,10 +215,10 @@ class Chat extends Component {
                     <div key={index} className={styles.msgList}>
                         {item.user === localStorage.fetch('curUser') &&
                             <p data-user={item.user} className={styles.msg_r} style={{ color: item.color }}>
-                                <span className={styles.userSpan} data-id="user">&nbsp;{item.user} </span>
+                                <span className={styles.userSpan} data-id={item.user} onClick={this.showUserInfo}>&nbsp;{item.user} </span>
                                 <span className={styles.timeSpan}>：({item.date})</span>
                                 {item.type === 'text' &&
-                                    <span className={styles.msg} dangerouslySetInnerHTML={{__html:item.msg}}></span>
+                                    <span className={styles.msg} dangerouslySetInnerHTML={{ __html: item.msg }}></span>
                                 }
                                 {item.type === 'image' &&
                                     <img src={item.msg} />
@@ -210,10 +233,10 @@ class Chat extends Component {
                         }
                         {item.user !== '系统' && item.user !== localStorage.fetch('curUser') &&
                             <p data-user={item.user} className={styles.msg_l} style={{ color: item.color }}>
-                                <span className={styles.userSpan} data-id="user"> {item.user}&nbsp;</span>
+                                <span className={styles.userSpan} data-id={item.user} onClick={this.showUserInfo}> {item.user}&nbsp;</span>
                                 <span className={styles.timeSpan}>({item.date})：</span>
                                 {item.type === 'text' &&
-                                    <span className={styles.msg} dangerouslySetInnerHTML={{__html:item.msg}}></span>
+                                    <span className={styles.msg} dangerouslySetInnerHTML={{ __html: item.msg }}></span>
                                 }
                                 {item.type === 'image' &&
                                     <img src={item.msg} />
@@ -227,13 +250,13 @@ class Chat extends Component {
         }
         // 初始化兔斯基表情包
         let arr = [];
-        for(var i=0; i<69; i++) {
-            arr[i]=i+1;
+        for (var i = 0; i < 69; i++) {
+            arr[i] = i + 1;
         }
         const content = (
             <div className={styles.tusijiWrap} onClick={this.sendTsj}>
                 {
-                    arr.map(item => 
+                    arr.map(item =>
                         <img key={item} title={item} src={require(`../assets/tusiji/${item}.gif`)} />
                     )
                 }
@@ -257,10 +280,10 @@ class Chat extends Component {
                     <Popover content={content} title="选择表情">
                         <Button shape="circle" icon="smile" className={styles.btn} title="表情"></Button>
                     </Popover>
-                    <Popconfirm 
-                        title="确定清屏吗？" 
-                        onConfirm={this.clearScreen} 
-                        okText="确定" 
+                    <Popconfirm
+                        title="确定清屏吗？"
+                        onConfirm={this.clearScreen}
+                        okText="确定"
                         cancelText="取消"
                     >
                         <Button shape="circle" icon="delete" className={styles.btn} title="清屏"></Button>
@@ -273,14 +296,29 @@ class Chat extends Component {
                     onCancel={this.hideModal}
                     okText="确认发送"
                     cancelText="取消发送"
-                    style={{textAlign: 'center'}}
+                    style={{ textAlign: 'center' }}
                 >
-                    <img src={this.state.imgSrc} style={{maxWidth: '99%'}} ref="img" />
+                    <img src={this.state.imgSrc} style={{ maxWidth: '99%' }} ref="img" />
+                </Modal>
+                <Modal
+                    title="查看资料"
+                    visible={this.state.infoVisible}
+                    onOk={this.infoOkHandle}
+                    onCancel={this.infoHideModal}
+                    okText="发消息"
+                    className={styles.userinfo}
+                    width={300}
+                >
+                    <p><label>用户名：</label> {clickUserInfo.userName}</p>
+                    <p><label>性别：</label> {clickUserInfo.sex === 'male' ? '男' : '女'}</p>
+                    <p><label>出生日期：</label> {clickUserInfo.birth}</p>
+                    <p><label>城市：</label> {clickUserInfo.city}</p>
+                    <p><label>个性签名：</label> {clickUserInfo.signature}</p>
                 </Modal>
                 <TextArea
                     placeholder="enter to send"
                     className={styles.msgInput}
-                    autosize={{minRows: 2, maxRows: 6}}
+                    autosize={{ minRows: 2, maxRows: 6 }}
                     onPressEnter={this.send}
                     ref="msgInput"
                 />

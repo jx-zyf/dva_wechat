@@ -12,6 +12,7 @@ export default {
       loading: false,
       resetStatus: false,
       curUserInfo: {},
+      clickUserInfo: {},
       setPersonalStatus: false,
   },
 
@@ -174,7 +175,11 @@ export default {
       return { ...state, resetStatus: payload}
     },
     getPersonalHandle(state, { payload}) {
-      return { ...state, curUserInfo: payload}
+      if (payload.userName === localStorage.fetch('curUser')) {
+        return { ...state, curUserInfo: payload, clickUserInfo: payload}
+      } else {
+        return { ...state, clickUserInfo: payload}
+      }
     },
     setPersonalHandle(state, { payload }) {
       return { ...state, setPersonalStatus: payload}
