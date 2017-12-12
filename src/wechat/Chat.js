@@ -112,6 +112,10 @@ class Chat extends Component {
                 payload: newPrivateChat
             });
         }
+        var showMsg = ReactDOM.findDOMNode(this.refs.showMsg);
+        if (showMsg) {
+            showMsg.scrollTop = showMsg.scrollHeight - showMsg.clientHeight;
+        }
     }
     sendMsg = (user, msg, color, type, toUser, fromUser) => {
         const { dispatch } = this.props;
@@ -189,6 +193,7 @@ class Chat extends Component {
     }
     // 发送图片
     okHandle = () => {
+        const { chat: { curChat } } = this.props;
         let msg = ReactDOM.findDOMNode(this.refs.img).src;
         let color = ReactDOM.findDOMNode(this.refs.fontColor).value;
         if (msg.src !== '') {
