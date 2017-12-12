@@ -6,6 +6,8 @@ const getPersonalInfo = require('./getPersonalInfo.js');
 const setPersonalInfo = require('./setPersonalInfo.js');
 const setChatMsg = require('./setChatMsg.js');
 const getChatMsg = require('./getChatMsg.js');
+const setPrivateChatMsg = require('./setPrivateChatMsg.js');
+const getPrivateChatMsg = require('./getPrivateChatMsg.js');
 
 var route = function (req, res, operation) {
     switch (operation) {
@@ -32,6 +34,12 @@ var route = function (req, res, operation) {
             break;
         case 'getChatMsg':
             getChatMsg(req, res);
+            break;
+        case 'setPrivateChatMsg':
+            setPrivateChatMsg(req, res);
+            break;
+        case 'getPrivateChatMsg':
+            getPrivateChatMsg(req, res);
             break;
         default: break;
     }

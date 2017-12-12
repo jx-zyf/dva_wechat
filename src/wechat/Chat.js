@@ -16,6 +16,8 @@ class Chat extends Component {
         this.socket = io.connect('http://localhost:8080');
         this.state = {
             userCount: 0,
+            curUsers: [],
+            clickUser: '',
             visible: false,
             imgSrc: '',
             infoVisible: false,
@@ -24,16 +26,17 @@ class Chat extends Component {
     componentDidMount() {
         const _this = this;
         if (localStorage.fetch('curUser') !== null) {
-            const { user: { curUser, inlineUsers }, dispatch } = this.props;
+            const { user: { curUser, inlineUsers }, dispatch, chat: { curChat, chatList } } = this.props;
             this.socket.emit('login', curUser);
             this.socket.on('login_success', (nickname) => {
-                this.socket.on('system', function (nickname, userCount, type) {
+                this.socket.on('system', function (nickname, userCount, type, users) {
                     let msg = nickname + (type === 'login' ? ' 加入了' : '离开了') + '房间！';
                     if (userCount !== _this.state.userCount) {
                         // 组件加载完毕再setState
                         if (_this.mountd) {
                             _this.setState({
-                                userCount: userCount
+                                userCount: userCount,
+                                curUsers: users,
                             });
                             _this.sendMsg('系统', msg, '#999');
                         }
@@ -41,12 +44,46 @@ class Chat extends Component {
                 });
             });
             // 接收消息
-            this.socket.on('newMsg', function (userName, msg, color, type) {
-                _this.sendMsg(userName, msg, color, type);
+            this.socket.on('newMsg', function (userName, msg, color, type, toUser, fromUser) {
+                if (toUser === 'all') {
+                    dispatch({
+                        type: 'chat/setCurChat',
+                        payload: 'group'
+                    });
+                    _this.sendMsg(userName, msg, color, type, 'all');
+                } else {
+                    if (curUser === fromUser) {
+                        if (!chatList.includes(toUser)) {
+                            dispatch({
+                                type: 'chat/addChat',
+                                payload: toUser
+                            });
+                        }
+                        dispatch({
+                            type: 'chat/setCurChat',
+                            payload: toUser
+                        });
+                    } else {
+                        if (!chatList.includes(fromUser)) {
+                            dispatch({
+                                type: 'chat/addChat',
+                                payload: fromUser
+                            });
+                        }
+                        dispatch({
+                            type: 'chat/setCurChat',
+                            payload: fromUser
+                        });
+                    }
+                    _this.sendMsg(userName, msg, color, type, toUser, fromUser);
+                }
             });
             // 从数据库获取历史消息
             dispatch({
                 type: 'chat/getMsg'
+            });
+            dispatch({
+                type: 'chat/getPrivateMsg'
             });
         }
     }
@@ -61,7 +98,7 @@ class Chat extends Component {
         this.socket.emit('leave_room', curUser);
     }
     componentDidUpdate() {
-        const { dispatch, chat: { newMsgList } } = this.props;
+        const { dispatch, chat: { newMsgList, newPrivateChat } } = this.props;
         // 将消息存到数据库
         if (newMsgList.user !== '系统' && newMsgList.msg) {
             dispatch({
@@ -69,8 +106,14 @@ class Chat extends Component {
                 payload: newMsgList
             });
         }
+        if (newPrivateChat.user !== '系统' && newPrivateChat.msg) {
+            dispatch({
+                type: 'chat/savePrivateMsg',
+                payload: newPrivateChat
+            });
+        }
     }
-    sendMsg = (user, msg, color, type) => {
+    sendMsg = (user, msg, color, type, toUser, fromUser) => {
         const { dispatch } = this.props;
         var date = new Date().toLocaleDateString() + ' ' + new Date().toTimeString().substr(0, 8);
         var color = color || '#000';
@@ -81,7 +124,9 @@ class Chat extends Component {
                 msg: msg,
                 color: color,
                 date: date,
-                type: type
+                type: type,
+                toUser: toUser,
+                fromUser: fromUser,
             }
         });
         var showMsg = ReactDOM.findDOMNode(this.refs.showMsg);
@@ -95,10 +140,15 @@ class Chat extends Component {
         // let user = localStorage.fetch('curUser');
         let msg = e.target.value.replace(/&nbsp;/g, '');
         let color = ReactDOM.findDOMNode(this.refs.fontColor).value;
+        const { chat: { curChat } } = this.props;
         // 将表情转化成对应的img
         msg = this.showTusiji(msg);
         if (msg.trim().length > 0) {
-            this.socket.emit('sendMsg', msg, color, 'text');
+            if (curChat === 'group') {
+                this.socket.emit('sendMsg', msg, color, 'text');
+            } else {
+                this.socket.emit('sendMsg', msg, color, 'text', curChat);
+            }
         } else {
             message.warning('不能发送空消息');
         }
@@ -142,7 +192,11 @@ class Chat extends Component {
         let msg = ReactDOM.findDOMNode(this.refs.img).src;
         let color = ReactDOM.findDOMNode(this.refs.fontColor).value;
         if (msg.src !== '') {
-            this.socket.emit('sendMsg', msg, color, 'image');
+            if (curChat === 'group') {
+                this.socket.emit('sendMsg', msg, color, 'image');
+            } else {
+                this.socket.emit('sendMsg', msg, color, 'image', curChat);
+            }
         } else {
             message.warning('请选择图片！');
         }
@@ -188,6 +242,7 @@ class Chat extends Component {
             type: 'user/getPersonal',
             payload: e.target.getAttribute('data-id')
         });
+        this.setState({clickUser: e.target.getAttribute('data-id')});
         this.infoShowModal();
     }
     infoShowModal = () => {
@@ -200,11 +255,57 @@ class Chat extends Component {
             infoVisible: false,
         });
     }
+    infoOkHandle = () => {
+        const { clickUser } = this.state;
+        const { dispatch, chat: { chatList } } = this.props;
+        const curUser = localStorage.fetch('curUser');
+        if (clickUser !== curUser && !chatList.includes(clickUser)) {
+            dispatch({
+                type: 'chat/addChat',
+                payload: clickUser
+            });
+            dispatch({
+                type: 'chat/setCurChat',
+                payload: clickUser
+            });
+            this.infoHideModal();
+        } else if (chatList.includes(clickUser)) {
+            message.warning('该用户已在聊天列表！');
+        } else {
+            message.warning('不能发送消息给自己！');
+        }
+    }
+    // 聊天列表
+    chatWith = (e) => {
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'chat/setCurChat',
+            payload: e.target.getAttribute('data-list')
+        });
+    }
+    closeChat = (e) => {
+        e.stopPropagation();
+        const removeList = e.target.getAttribute('data-list');
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'chat/setCurChat',
+            payload: 'group'
+        });
+        if (removeList !== 'group') {
+            dispatch({
+                type: 'chat/removeChat',
+                payload: removeList
+            });
+            message.success('已删除该聊天！');
+        } else {
+            message.error('群组聊天不能删除！');
+        }
+    }
     render() {
-        const { userCount } = this.state;
-        const { chat: { msgList }, dispatch, user: { clickUserInfo } } = this.props;
+        const { userCount, curUsers } = this.state;
+        const { chat: { msgList, chatList, curChat, privateChat }, dispatch, user: { clickUserInfo, curUser } } = this.props;
         // 展示消息
-        if (msgList.length > 0) {
+        if (curChat === 'group' && msgList.length > 0) {
             for (var i = msgList.length - 1; i >= 0; i--) {
                 if (i - 1 >= 0 && msgList[i].date === msgList[i - 1].date) {
                     msgList.splice(i, 1);
@@ -247,6 +348,47 @@ class Chat extends Component {
                     </div>
                 );
             })
+        } else if (curChat !== 'group' && privateChat.length > 0) {
+            for (var i = privateChat.length - 1; i >= 0; i--) {
+                if (i - 1 >= 0 && privateChat[i].date === privateChat[i - 1].date) {
+                    privateChat.splice(i, 1);
+                }
+            }
+            var filterPrivateChat = privateChat.filter((item) => 
+                (item.fromUser === curUser || item.fromUser === curChat ) 
+                && (item.toUser === curUser || item.toUser === curChat )
+            );
+            var ele = filterPrivateChat.map((item, index) => {
+                return (
+                    <div key={index} className={styles.msgList}>
+                        {item.user === localStorage.fetch('curUser') &&
+                            <p data-user={item.user} className={styles.msg_r} style={{ color: item.color }}>
+                                <span className={styles.userSpan} data-id={item.user} onClick={this.showUserInfo}>&nbsp;{item.user} </span>
+                                <span className={styles.timeSpan}>：({item.date})</span>
+                                {item.type === 'text' &&
+                                    <span className={styles.msg} dangerouslySetInnerHTML={{ __html: item.msg }}></span>
+                                }
+                                {item.type === 'image' &&
+                                    <img src={item.msg} />
+                                }
+                            </p>
+                        }
+                        {item.user !== '系统' && item.user !== localStorage.fetch('curUser') &&
+                            <p data-user={item.user} className={styles.msg_l} style={{ color: item.color }}>
+                                <span className={styles.userSpan} data-id={item.user} onClick={this.showUserInfo}> {item.user}&nbsp;</span>
+                                <span className={styles.timeSpan}>({item.date})：</span>
+                                {item.type === 'text' &&
+                                    <span className={styles.msg} dangerouslySetInnerHTML={{ __html: item.msg }}></span>
+                                }
+                                {item.type === 'image' &&
+                                    <img src={item.msg} />
+                                }
+                            </p>
+                        }
+                        <br />
+                    </div>
+                );
+            })
         }
         // 初始化兔斯基表情包
         let arr = [];
@@ -263,10 +405,35 @@ class Chat extends Component {
             </div>
         );
         return (
-            <div>
+            <div className={styles.normal}>
                 <Alert message={`当前在线人数：${userCount}`} type="info" style={{ textAlign: 'center' }} />
                 <div className={styles.showMsg} ref="showMsg">
+                    <Alert message={`${curChat}`} type="info" style={{ textAlign: 'center', fontWeight: 'bolder' }} />
                     {ele}
+                </div>
+                <div className={styles.usersShow}>
+                    <Alert message="在线用户列表" type="success" style={{ textIndent: '2em' }} />
+                    {curUsers && curUsers.length > 0 &&
+                        curUsers.map(item =>
+                            <li key={item} onClick={this.showUserInfo} data-id={item}><a data-id={item}>{item}</a></li>
+                        )
+                    }
+                    <Alert message="聊天列表" type="success" style={{ textIndent: '2em', marginTop: 15 }} />
+                    <div>
+                        {chatList && chatList.length > 0 &&
+                            chatList.map(item => 
+                                <li 
+                                    key={item} 
+                                    onClick={this.chatWith} 
+                                    data-list={item}
+                                    style={item===curChat ? { backgroundColor: '#ccc' } : { backgroundColor: '#eee' }}
+                                >
+                                    <a data-list={item}>{item}</a>
+                                    <Icon type="close" className={styles.closeChat} data-list={item} onClick={this.closeChat} />
+                                </li>
+                            )
+                        }
+                    </div>
                 </div>
                 <div style={{ marginTop: 20 }} className={styles.control}>
                     <Input
@@ -310,7 +477,7 @@ class Chat extends Component {
                     width={300}
                 >
                     <p><label>用户名：</label> {clickUserInfo.userName}</p>
-                    <p><label>性别：</label> {clickUserInfo.sex === 'male' ? '男' : '女'}</p>
+                    <p><label>性别：</label> {clickUserInfo.sex === 'male' ? '男' : (clickUserInfo.sex === 'female' ? '女' : '保密')}</p>
                     <p><label>出生日期：</label> {clickUserInfo.birth}</p>
                     <p><label>城市：</label> {clickUserInfo.city}</p>
                     <p><label>个性签名：</label> {clickUserInfo.signature}</p>

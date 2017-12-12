@@ -28,13 +28,13 @@ class MainLayout extends Component {
                         <Menu.Item key="1">
                             <Link to='/'>
                                 <Icon type="message" />
-                                <span className="nav-text">群聊</span>
+                                <span className="nav-text">WeChat</span>
                             </Link>
                         </Menu.Item>
                         <Menu.Item key="2">
                             <Link to='/about'>
                                 <Icon type="fork" />
-                                <span className="nav-text">关于</span>
+                                <span className="nav-text">About</span>
                             </Link>
                         </Menu.Item>
                     </Menu>
