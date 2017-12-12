@@ -13,6 +13,8 @@ app.all('*',function(req,res,next){
     next();
 });
 
+app.use(express.static(__dirname + '/serverPublic'));
+
 app.post('/user/:operation',function(req,res,next){
     var operation=req.params.operation;
     route(req,res,operation);
@@ -75,4 +77,8 @@ io.on('connection', function(socket){
             usocket[socket.userName].emit('newMsg', socket.userName, msg, color, type, toUser, socket.userName);
         }
     })
+    // 消息提示
+    socket.on('notification', function(user, msg){
+	 	io.emit('notification', user, msg);
+	});
 });

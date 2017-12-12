@@ -78,6 +78,16 @@ class Chat extends Component {
                     _this.sendMsg(userName, msg, color, type, toUser, fromUser);
                 }
             });
+            Notification.requestPermission(function(permission) {});    //询问浏览器是否允许通知
+            this.socket.on('notification', function(user, msg){
+                let _notification = new Notification(`消息通知`,{
+                    body:`${user}：${msg}`,
+                    icon:'http://localhost:8080/wechat.png'
+                });
+                setTimeout(function(){
+                    _notification.close(); //设置5秒后自动关闭通知框
+                },5000);
+            });
             // 从数据库获取历史消息
             dispatch({
                 type: 'chat/getMsg'
@@ -144,7 +154,7 @@ class Chat extends Component {
         // let user = localStorage.fetch('curUser');
         let msg = e.target.value.replace(/&nbsp;/g, '');
         let color = ReactDOM.findDOMNode(this.refs.fontColor).value;
-        const { chat: { curChat } } = this.props;
+        const { chat: { curChat }, user: { curUser } } = this.props;
         // 将表情转化成对应的img
         msg = this.showTusiji(msg);
         if (msg.trim().length > 0) {
@@ -153,6 +163,7 @@ class Chat extends Component {
             } else {
                 this.socket.emit('sendMsg', msg, color, 'text', curChat);
             }
+            this.socket.emit('notification', curUser, msg);
         } else {
             message.warning('不能发送空消息');
         }
