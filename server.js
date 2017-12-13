@@ -4,9 +4,9 @@ const route = require('./servers/route.js');
 var app = express();
 
 app.all('*',function(req,res,next){
-    if(/favicon/.test(req.url)){
-        return;
-    }
+    // if(/favicon/.test(req.url)){
+    //     return;
+    // }
     res.setHeader('Access-Control-Allow-Origin','*');
 	res.setHeader('Access-Control-Allow-Headers','Content-Type');
     res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,OPTIONS,PUT');

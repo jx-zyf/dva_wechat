@@ -26,7 +26,7 @@ class Chat extends Component {
     componentDidMount() {
         const _this = this;
         if (localStorage.fetch('curUser') !== null) {
-            const { user: { curUser, inlineUsers }, dispatch, chat: { curChat, chatList } } = this.props;
+            const { user: { curUser }, dispatch, chat: { curChat, chatList } } = this.props;
             this.socket.emit('login', curUser);
             this.socket.on('login_success', (nickname) => {
                 this.socket.on('system', function (nickname, userCount, type, users) {
@@ -80,13 +80,26 @@ class Chat extends Component {
             });
             Notification.requestPermission(function(permission) {});    //询问浏览器是否允许通知
             this.socket.on('notification', function(user, msg){
-                let _notification = new Notification(`消息通知`,{
-                    body:`${user}：${msg}`,
-                    icon:'http://localhost:8080/wechat.png'
-                });
-                setTimeout(function(){
-                    _notification.close(); //设置5秒后自动关闭通知框
-                },5000);
+                if (user !== curUser) {
+                    let _notification;
+                    if (/class="emoji"/.test(msg)) {
+                        _notification= new Notification(`新消息`,{
+                            body:`${user}：表情`,
+                            icon:'http://localhost:8080/wechat.png'
+                        });
+                    } else {
+                        _notification= new Notification(`新消息`,{
+                            body:`${user}：${msg}`,
+                            icon:'http://localhost:8080/wechat.png'
+                        });
+                    }
+                    _notification.onclick = function(event) {
+                        window.focus();
+                    }
+                    setTimeout(function(){
+                        _notification.close(); //设置5秒后自动关闭通知框
+                    },5000);
+                }
             });
             // 从数据库获取历史消息
             dispatch({
@@ -124,6 +137,9 @@ class Chat extends Component {
         }
         var showMsg = ReactDOM.findDOMNode(this.refs.showMsg);
         if (showMsg) {
+            if (showMsg.getElementsByTagName('div')[1]) {
+                showMsg.getElementsByTagName('div')[1].style.marginTop = '40px';
+            }
             showMsg.scrollTop = showMsg.scrollHeight - showMsg.clientHeight;
         }
     }
@@ -145,13 +161,15 @@ class Chat extends Component {
         });
         var showMsg = ReactDOM.findDOMNode(this.refs.showMsg);
         if (showMsg) {
+            if (showMsg.getElementsByTagName('div')[1]) {
+                showMsg.getElementsByTagName('div')[1].style.marginTop = '40px';
+            }
             showMsg.scrollTop = showMsg.scrollHeight - showMsg.clientHeight;
         }
     }
     // 发消息
     send = (e) => {
         e.preventDefault();
-        // let user = localStorage.fetch('curUser');
         let msg = e.target.value.replace(/&nbsp;/g, '');
         let color = ReactDOM.findDOMNode(this.refs.fontColor).value;
         const { chat: { curChat }, user: { curUser } } = this.props;
@@ -204,7 +222,7 @@ class Chat extends Component {
     }
     // 发送图片
     okHandle = () => {
-        const { chat: { curChat } } = this.props;
+        const { chat: { curChat }, user: { curUser } } = this.props;
         let msg = ReactDOM.findDOMNode(this.refs.img).src;
         let color = ReactDOM.findDOMNode(this.refs.fontColor).value;
         if (msg.src !== '') {
@@ -213,6 +231,7 @@ class Chat extends Component {
             } else {
                 this.socket.emit('sendMsg', msg, color, 'image', curChat);
             }
+            this.socket.emit('notification', curUser, '图片');
         } else {
             message.warning('请选择图片！');
         }
@@ -423,9 +442,11 @@ class Chat extends Component {
         return (
             <div className={styles.normal}>
                 <Alert message={`当前在线人数：${userCount}`} type="info" style={{ textAlign: 'center' }} />
-                <div className={styles.showMsg} ref="showMsg">
-                    <Alert message={`${curChat}`} type="info" style={{ textAlign: 'center', fontWeight: 'bolder' }} />
-                    {ele}
+                <div className={styles.msgWrap}>
+                    <div className={styles.showMsg} ref="showMsg">
+                        <Alert message={`当前聊天：${curChat}`} type="info" className={styles.msgHeader} />
+                        {ele}
+                    </div>
                 </div>
                 <div className={styles.usersShow}>
                     <Alert message="在线用户列表" type="success" style={{ textIndent: '2em' }} />

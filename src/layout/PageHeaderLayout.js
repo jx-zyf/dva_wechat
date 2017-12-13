@@ -132,7 +132,7 @@ class PageHeaderLayout extends React.Component {
                     </div>
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
-                    WeChat ©2016 LinXun
+                    WeChat ©2017 LinXun
         </Footer>
             </Layout>
         );
