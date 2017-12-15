@@ -139,7 +139,7 @@
         margin-left: 10px;
         vertical-align: middle;
     }
-    .pic {
+    .pic, .file {
         display: inline-block;
         margin-left: 10px;
         width: 36px;
@@ -147,7 +147,7 @@
         position: relative;
         visibility: hidden;
     }
-    .pic::after {
+    .pic::after, .file::after {
         content: '';
         display: block;
         width: 100%;
@@ -155,10 +155,15 @@
         position: absolute;
         top: 0;
         left: 0;
-        background-image: url('../assets/image.png');
         background-size: cover;
         visibility: visible;
         cursor: pointer;
+    }
+    .pic::after {
+        background-image: url('../assets/image.png');
+    }
+    .file::after {
+        background-image: url('../assets/file.png');
     }
 }
 .tusijiWrap {

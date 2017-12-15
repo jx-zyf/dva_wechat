@@ -21,6 +21,9 @@ class Chat extends Component {
             visible: false,
             imgSrc: '',
             infoVisible: false,
+            visible2: false,
+            fileName: '',
+            file: '',
         }
     }
     componentDidMount() {
@@ -201,13 +204,17 @@ class Chat extends Component {
                 target.value = '';
                 return;
             };
-            reader.onload = function (e) {
-                _this.showModal();
-                _this.setState({
-                    imgSrc: e.target.result
-                });
-            };
-            reader.readAsDataURL(file);
+            if (file.type.includes('image')) {
+                reader.onload = function (e) {
+                    _this.showModal();
+                    _this.setState({
+                        imgSrc: e.target.result
+                    });
+                };
+                reader.readAsDataURL(file);
+            } else {
+                message.error('文件类型有误！');
+            }
         };
     }
     showModal = () => {
@@ -237,6 +244,62 @@ class Chat extends Component {
         }
         this.setState({
             visible: false,
+        });
+    }
+    // 选择文件
+    sendFile = (e) => {
+        const _this = this;
+        const target = e.target;
+        //检查是否有文件被选中
+        if (target.files.length !== 0) {
+            //获取文件并用FileReader进行读取
+            let file = target.files[0],
+                reader = new FileReader();
+            if (!reader) {
+                _this.sendMsg('系统', '!your browser doesn\'t support fileReader', 'red');
+                target.value = '';
+                return;
+            };
+            if (!file.type.includes('image')) {
+                reader.readAsDataURL(file);
+                reader.onload = function (e) {
+                    _this.showModal2();
+                    _this.setState({
+                        fileName: file.name,
+                        file: e.target.result
+                    });
+                }
+            } else {
+                message.error('发送图片请选择图片按钮！');
+            }
+        };
+    }
+    showModal2 = () => {
+        this.setState({
+            visible2: true,
+        });
+    }
+    hideModal2 = () => {
+        this.setState({
+            visible2: false,
+        });
+    }
+    // 发送文件
+    okHandle2 = () => {
+        const { chat: { curChat }, user: { curUser } } = this.props;
+        const { file, fileName } = this.state;
+        if (file !== '') {
+            if (curChat === 'group') {
+                this.socket.emit('sendMsg', {file, fileName}, null, 'file');
+            } else {
+                this.socket.emit('sendMsg', {file, fileName}, null, 'file', curChat);
+            }
+            this.socket.emit('notification', curUser, '文件');
+        } else {
+            message.warning('请选择文件！');
+        }
+        this.setState({
+            visible2: false,
         });
     }
     // 兔斯基表情包
@@ -359,6 +422,12 @@ class Chat extends Component {
                                 {item.type === 'image' &&
                                     <img src={item.msg} />
                                 }
+                                {item.type === 'file' &&
+                                    <span className={styles.msg}>
+                                        文件：
+                                        <a href={item.msg.file} download={item.msg.fileName} title="点击下载">{item.msg.fileName}</a>
+                                    </span>
+                                }
                             </p>
                         }
                         {item.user === '系统' &&
@@ -376,6 +445,12 @@ class Chat extends Component {
                                 }
                                 {item.type === 'image' &&
                                     <img src={item.msg} />
+                                }
+                                {item.type === 'file' &&
+                                    <span className={styles.msg}>
+                                        文件：
+                                        <a href={item.msg.file} download={item.msg.fileName} title="点击下载">{item.msg.fileName}</a>
+                                    </span>
                                 }
                             </p>
                         }
@@ -406,6 +481,12 @@ class Chat extends Component {
                                 {item.type === 'image' &&
                                     <img src={item.msg} />
                                 }
+                                {item.type === 'file' &&
+                                    <span className={styles.msg}>
+                                        文件：
+                                        <a href={item.msg.file} download={item.msg.fileName} title="点击下载">{item.msg.fileName}</a>
+                                    </span>
+                                }
                             </p>
                         }
                         {item.user !== '系统' && item.user !== localStorage.fetch('curUser') &&
@@ -417,6 +498,12 @@ class Chat extends Component {
                                 }
                                 {item.type === 'image' &&
                                     <img src={item.msg} />
+                                }
+                                {item.type === 'file' &&
+                                    <span className={styles.msg}>
+                                        文件：
+                                        <a href={item.msg.file} download={item.msg.fileName} title="点击下载">{item.msg.fileName}</a>
+                                    </span>
                                 }
                             </p>
                         }
@@ -481,6 +568,7 @@ class Chat extends Component {
                         ref="fontColor"
                     />
                     <Input type="file" title="图片" className={styles.pic} onChange={this.sendImg} />
+                    <Input type="file" title="文件 " className={styles.file} onChange={this.sendFile} />
                     <Popover content={content} title="选择表情">
                         <Button shape="circle" icon="smile" className={styles.btn} title="表情"></Button>
                     </Popover>
@@ -503,6 +591,17 @@ class Chat extends Component {
                     style={{ textAlign: 'center' }}
                 >
                     <img src={this.state.imgSrc} style={{ maxWidth: '99%' }} ref="img" />
+                </Modal>
+                <Modal
+                    title="选择文件"
+                    visible={this.state.visible2}
+                    onOk={this.okHandle2}
+                    onCancel={this.hideModal2}
+                    okText="确认发送"
+                    cancelText="取消发送"
+                    style={{ textAlign: 'center' }}
+                >
+                    <p>{this.state.fileName}</p>
                 </Modal>
                 <Modal
                     title="查看资料"
