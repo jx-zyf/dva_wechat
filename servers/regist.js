@@ -24,9 +24,9 @@ function regist(req, res) {
                     collection.insert({
                         ...obj,
                         sex: 'secret',
-                        birth: '1996/06/02',
-                        city: '江西省/赣州市/南康区',
-                        signature: '随遇而安'
+                        birth: '1996/01/01',
+                        city: '北京市/北京市/朝阳区',
+                        signature: '一句话描述你自己...'
                     });
                     res.send('1');
                     db.close();
