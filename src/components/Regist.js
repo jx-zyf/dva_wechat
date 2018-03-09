@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Form, Icon, Input, Button, Spin } from 'antd';
 import { Link, routerRedux } from 'dva/router';
+import utils from 'utility';
 
 import styles from './Regist.less';
 
@@ -23,11 +24,16 @@ class Regist extends Component {
                     type: 'user/regist',
                     payload: {
                         userName: values.userName,
-                        password: values.password1
+                        password: this.myMd5(values.password1)
                     }
                 });
             }
         });
+    }
+
+    myMd5(pwd) {
+        let str = 'linxunzyf_is_a_goodBoy1996#$~~haha'
+        return utils.md5(pwd + str)
     }
 
     checkPassword = (rule, value, callback) => {

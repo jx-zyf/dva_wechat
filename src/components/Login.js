@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Form, Icon, Input, Button, Checkbox, Spin } from 'antd';
 import { Link, routerRedux } from 'dva/router';
+import utils from 'utility';
 
 import styles from './Login.less';
 
@@ -33,11 +34,16 @@ class Login extends Component {
                     type: 'user/login',
                     payload: {
                         userName: values.userName,
-                        password: values.password
+                        password: this.myMd5(values.password)
                     }
                 });
             }
         });
+    }
+
+    myMd5(pwd) {
+        let str = 'linxunzyf_is_a_goodBoy1996#$~~haha'
+        return utils.md5(pwd + str)
     }
 
     changeToRegist = () => {
@@ -63,14 +69,14 @@ class Login extends Component {
                                 rules: [{ required: true, message: '请输入用户名！' }],
                             })(
                                 <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="Username" />
-                                )}
+                            )}
                         </FormItem>
                         <FormItem>
                             {getFieldDecorator('password', {
                                 rules: [{ required: true, message: '请输入密码！' }],
                             })(
                                 <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password" placeholder="Password" />
-                                )}
+                            )}
                         </FormItem>
                         <FormItem>
                             {getFieldDecorator('remember', {
@@ -78,7 +84,7 @@ class Login extends Component {
                                 initialValue: true,
                             })(
                                 <Checkbox>Remember me</Checkbox>
-                                )}
+                            )}
                             <a className={styles.login_form_forgot} href="#">忘记密码？</a>
                             <Button type="primary" htmlType="submit" className={styles.login_form_button}>
                                 登录
