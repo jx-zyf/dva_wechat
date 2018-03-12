@@ -20,22 +20,34 @@ function login(req,res){
                 // console.log(result);
                 if(result==''){
                     // 用户不存在
-                    res.send('1');
+                    res.send({
+                        success: false,
+                        errMsg: '用户不存在'
+                    });
                     db.close();
                     res.end();
                 }else{
                     // 登录
                     if( result[0].isLogin ){
-                        res.send('-2');
+                        res.send({
+                            success: false,
+                            errMsg: '用户已登录'
+                        });
                         db.close();
                         res.end();
                     } else {
                         if(result[0].password!==obj.password){
-                            res.send('-1');
+                            res.send({
+                                success: false,
+                                errMsg: '密码错误'
+                            });
                             db.close();
                             res.end();
                         }else{
-                            res.send('0');
+                            res.send({
+                                success: true,
+                                errMsg: '登录成功'
+                            });
                             collection.update({userName:obj.userName}, { $set: { isLogin: true } } );
                             db.close();
                             res.end();

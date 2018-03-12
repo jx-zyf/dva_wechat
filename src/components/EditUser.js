@@ -5,6 +5,7 @@ import { routerRedux } from 'dva/router';
 import PageHeaderLayout from '../layout/PageHeaderLayout';
 import localStorage from '../utils/localStorage';
 import io from 'socket.io-client';
+import utils from 'utility';
 
 const FormItem = Form.Item;
 
@@ -44,20 +45,20 @@ class EditUser extends PureComponent {
             if (err) {
                 return false;
             }
-            const result = {
-                userName: curUser,
-                old_pwd: values.old_pwd,
-                new_pwd: values.new_pwd,
-            };
-            if (result.old_pwd !== result.new_pwd) {
-                dispatch({
-                    type: 'user/resetPassword',
-                    payload: result,
-                });
-            } else {
-                message.warning('新密码不能和旧密码一样！');
-            }
+            dispatch({
+                type: 'user/resetPassword',
+                payload: {
+                    userName: curUser,
+                    old_pwd: this.myMd5(values.old_pwd),
+                    new_pwd: this.myMd5(values.new_pwd)
+                },
+            });
         });
+    }
+
+    myMd5(pwd) {
+        let str = 'linxunzyf_is_a_goodBoy1996#$~~haha'
+        return utils.md5(pwd + str)
     }
 
     backUrl = () => {
@@ -88,7 +89,7 @@ class EditUser extends PureComponent {
                                     ],
                                 })(
                                     <Input type="password" placeholder="请输入旧密码" />
-                                    )}
+                                )}
                             </FormItem>
                             <FormItem {...formItemConfig} label="新密码" extra="6-16个字符" >
                                 {getFieldDecorator('new_pwd', {
@@ -98,7 +99,7 @@ class EditUser extends PureComponent {
                                     ],
                                 })(
                                     <Input type="password" placeholder="请输入新密码" />
-                                    )}
+                                )}
                             </FormItem>
                             <FormItem {...formItemConfig} label="确认密码" extra="6-16个字符" >
                                 {getFieldDecorator('certain_pwd', {
@@ -108,7 +109,7 @@ class EditUser extends PureComponent {
                                     ],
                                 })(
                                     <Input type="password" placeholder="请输入确认密码" />
-                                    )}
+                                )}
                             </FormItem>
                             <FormItem wrapperCol={{ span: 18 }} style={{ textAlign: 'right' }} >
                                 <Button type="primary" htmlType="submit" loading={loading}>提交</Button>

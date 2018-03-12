@@ -1,7 +1,7 @@
 const login = require('./login.js');
 const regist = require('./regist.js');
 const logout = require('./logout.js');
-const edit = require('./edit.js');
+const resetPwd = require('./resetPwd.js');
 const getPersonalInfo = require('./getPersonalInfo.js');
 const setPersonalInfo = require('./setPersonalInfo.js');
 const setChatMsg = require('./setChatMsg.js');
@@ -20,8 +20,8 @@ var route = function (req, res, operation) {
         case 'logout':
             logout(req, res);
             break;
-        case 'edit':
-            edit(req, res);
+        case 'resetPwd':
+            resetPwd(req, res);
             break;
         case 'getPersonalInfo':
             getPersonalInfo(req, res);

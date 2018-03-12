@@ -19,7 +19,10 @@ function logout(req,res){
                 // console.log(result);
                 if(result!=''){
                     collection.update({userName:userName}, { $set: { isLogin: false } } );
-                    res.send('1');
+                    res.send({
+                        success: true,
+                        errMsg: '成功退出登录'
+                    });
                     db.close();
                     res.end();
                 }

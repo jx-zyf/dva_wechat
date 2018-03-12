@@ -19,7 +19,7 @@ export async function fakeLogout(params) {
     });
 }
 export async function fakeEdit(params) {
-    return request('http://localhost:8080/user/edit', {
+    return request('http://localhost:8080/user/resetPwd', {
         method: 'POST',
         body: JSON.stringify(params),
     });

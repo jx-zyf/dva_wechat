@@ -8,8 +8,6 @@ function regist(req, res) {
     });
     req.addListener('end', function () {
         var obj = JSON.parse(qStr);
-        // console.log(obj);
-        // console.log(obj.userName);
         obj.isLogin = false;
         MongoClient.connect(DB_STR, function (err, db) {
             var collection = db.collection('user');
@@ -28,12 +26,18 @@ function regist(req, res) {
                         city: '北京市/北京市/朝阳区',
                         signature: '一句话描述你自己...'
                     });
-                    res.send('1');
+                    res.send({
+                        success: true,
+                        errMsg: '注册成功'
+                    });
                     db.close();
                     res.end();
                 } else {
                     // 用户已存在
-                    res.send('0');
+                    res.send({
+                        success: false,
+                        errMsg: '该用户已存在'
+                    });
                     db.close();
                     res.end();
                 }

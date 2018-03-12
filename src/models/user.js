@@ -6,82 +6,75 @@ export default {
   namespace: 'user',
 
   state: {
-      status: undefined,
-      login: undefined,
-      curUser: localStorage.fetch('curUser'),
-      loading: false,
-      resetStatus: false,
-      curUserInfo: {},
-      clickUserInfo: {},
-      setPersonalStatus: false,
+    status: undefined,
+    login: undefined,
+    curUser: localStorage.fetch('curUser'),
+    loading: false,
+    resetStatus: false,
+    curUserInfo: {},
+    clickUserInfo: {},
+    setPersonalStatus: false,
   },
 
   effects: {
     *regist({ payload }, { call, put }) {
-      yield put({ 
+      yield put({
         type: 'changeLoading',
         payload: true
       });
-      const response = yield call(fakeRegist, payload);
-      if (response.data === 1) {
-        message.success('注册成功！');
+      const response = (yield call(fakeRegist, payload)).data;
+      if (response.success) {
+        message.success(response.errMsg);
+      } else {
+        message.error(response.errMsg);
       }
-      if (response.data === 0) {
-        message.warning('该用户已存在，请直接登录！');
-      }
-      yield put({ 
+      yield put({
         type: 'registHandle',
-        payload: response
+        payload: response.errMsg
       });
-      yield put({ 
+      yield put({
         type: 'changeLoading',
         payload: false
       });
     },
     *login({ payload }, { call, put }) {
-      yield put({ 
+      yield put({
         type: 'changeLoading',
         payload: true
       });
-      const response = yield call(fakeLogin, payload);
-      if (response.data === 1) {
-        message.warning('该用户不存在，请先注册！');
-      }
-      if (response.data === -1) {
-        message.error('密码错误！请核对后输入！');
-      }
-      if (response.data === -2) {
-        message.warning('该用户已登录！');
-      }
-      if (response.data === 0) {
+      const response = (yield call(fakeLogin, payload)).data;
+      if (response.success) {
         message.success('登录成功！');
         yield put({
           type: 'curUser',
           payload: payload.userName
         });
         localStorage.save('curUser', payload.userName);
+      } else {
+        message.error(response.errMsg)
       }
-      yield put({ 
+      yield put({
         type: 'loginHandle',
-        payload: response
+        payload: response.errMsg
       });
-      yield put({ 
+      yield put({
         type: 'changeLoading',
         payload: false
       });
     },
-    *logout({ payload }, { call, put }){
-      yield put({ 
+    *logout({ payload }, { call, put }) {
+      yield put({
         type: 'changeLoading',
         payload: true
       });
-      const response = yield call(fakeLogout, payload);
-      if (response.data === 1) {
+      const response = (yield call(fakeLogout, payload)).data;
+      if (response.success) {
+        message.success(response.errMsg)
         yield put({
           type: 'logoutHandle'
         });
       }
-      yield put({ 
+      yield put({
         type: 'changeLoading',
         payload: false
       });
@@ -109,7 +102,7 @@ export default {
     *getPersonal({ payload }, { call, put }) {
       const response = yield call(getPersonalInfo, payload);
       if (response.data.success) {
-          yield put({
+        yield put({
           type: 'getPersonalHandle',
           payload: response.data.result
         });
@@ -137,33 +130,33 @@ export default {
 
   reducers: {
     loginHandle(state, action) {
-      if(action.payload.data === 0){  // 登录成功
+      if (action.payload === '登录成功') {  // 登录成功
         return { ...state, login: 'true' }
-      } else if (action.payload.data === 1) { // 用户不存在
+      } else if (action.payload === '用户已登录') { // 用户已登录
         return { ...state, login: 'false' }
-      } else if (action.payload.data === -1) {  // 密码错误
+      } else if (action.payload === '密码错误') {  // 密码错误
         return { ...state, login: 'continue' }
       } else {
         return { ...state, login: undefined }
       }
     },
     registHandle(state, action) {
-      if(action.payload.data === 0){  // 用户已存在
+      if (action.payload === '该用户已存在') {  // 用户已存在
         return { ...state, status: 'fail' }
-      }else if (action.payload.data === 1){ // 注册成功
+      } else if (action.payload === '注册成功') { // 注册成功
         return { ...state, status: 'success' }
       } else {
         return { ...state, status: undefined }
       }
     },
     toLogin(state, action) {
-      return { ...state, login: action.payload.login}
+      return { ...state, login: action.payload.login }
     },
     toRegist(state, action) {
-      return { ...state, status: action.payload.status}
+      return { ...state, status: action.payload.status }
     },
     curUser(state, action) {
-      return { ...state, curUser: action.payload}
+      return { ...state, curUser: action.payload }
     },
     changeLoading(state, { payload }) {
       return { ...state, loading: payload }
@@ -172,18 +165,17 @@ export default {
       return { ...state, login: undefined }
     },
     resetpwdHandle(state, { payload }) {
-      return { ...state, resetStatus: payload}
+      return { ...state, resetStatus: payload }
     },
-    getPersonalHandle(state, { payload}) {
+    getPersonalHandle(state, { payload }) {
       if (payload.userName === localStorage.fetch('curUser')) {
-        return { ...state, curUserInfo: payload, clickUserInfo: payload}
+        return { ...state, curUserInfo: payload, clickUserInfo: payload }
       } else {
-        return { ...state, clickUserInfo: payload}
+        return { ...state, clickUserInfo: payload }
       }
     },
     setPersonalHandle(state, { payload }) {
-      return { ...state, setPersonalStatus: payload}
+      return { ...state, setPersonalStatus: payload }
     },
   },
 };
-    
