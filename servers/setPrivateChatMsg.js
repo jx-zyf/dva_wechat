@@ -15,11 +15,12 @@ function setChatMsg(req, res) {
                 return;
             }
             collection.find({
-                userName: obj.userName,
+                user: obj.user,
                 date: obj.date,
                 msg: obj.msg,
                 type: obj.type,
-                toUser: obj.toUser
+                toUser: obj.toUser,
+                formUser: obj.fromUser
             }, { _id: 0 }).toArray(function (err, result) {
                 if (result == '') {
                     collection.insert(obj);

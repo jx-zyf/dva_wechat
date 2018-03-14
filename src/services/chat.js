@@ -1,6 +1,7 @@
 import request from '../utils/request';
 
 export async function saveChatMsg(params) {
+    console.log(params)
     return request('http://localhost:8080/chat/setChatMsg', {
         method: 'POST',
         body: JSON.stringify(params),

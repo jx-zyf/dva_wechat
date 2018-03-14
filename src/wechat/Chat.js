@@ -53,7 +53,7 @@ class Chat extends Component {
                         type: 'chat/setCurChat',
                         payload: 'group'
                     });
-                    _this.sendMsg(userName, msg, color, type, 'all');
+                    _this.sendMsg(userName, msg, color, type, 'all', fromUser);
                 } else {
                     if (curUser === fromUser) {
                         if (!chatList.includes(toUser)) {

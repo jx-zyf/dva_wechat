@@ -15,7 +15,7 @@ function setChatMsg(req, res) {
                 return;
             }
             collection.find({
-                userName: obj.userName, 
+                user: obj.user, 
                 date: obj.date, 
                 msg: obj.msg, 
                 type: obj.type,
