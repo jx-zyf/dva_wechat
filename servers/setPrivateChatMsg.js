@@ -19,15 +19,18 @@ function setChatMsg(req, res) {
                 date: obj.date,
                 msg: obj.msg,
                 type: obj.type,
+                date: obj.date,
                 toUser: obj.toUser,
                 formUser: obj.fromUser
             }, { _id: 0 }).toArray(function (err, result) {
                 if (result == '') {
                     collection.insert(obj);
                     res.send({ success: true });
-                    db.close();
-                    res.end();
+                } else {
+                    res.send({ success: false });
                 }
+                db.close();
+                res.end();
             });
         });
     });

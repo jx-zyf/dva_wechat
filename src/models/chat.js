@@ -27,7 +27,7 @@ export default {
         yield call(savePrivateChatMsg, payload);
     },
     *getPrivateMsg({ payload }, { call, put }){
-        const response = yield call(getPrivateChatMsg);
+        const response = yield call(getPrivateChatMsg, payload);
         yield put({
             type: 'getHistoryPrivateChatMsg',
             payload: response.data.result

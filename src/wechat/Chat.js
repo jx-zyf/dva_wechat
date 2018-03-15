@@ -54,6 +54,15 @@ class Chat extends Component {
                         payload: 'group'
                     });
                     _this.sendMsg(userName, msg, color, type, 'all', fromUser);
+
+                    const { chat: { newMsgList } } = _this.props;
+                    // 将消息存到数据库
+                    if (newMsgList.user !== '系统' && newMsgList.msg) {
+                        dispatch({
+                            type: 'chat/saveMsg',
+                            payload: newMsgList
+                        });
+                    }
                 } else {
                     if (curUser === fromUser) {
                         if (!chatList.includes(toUser)) {
@@ -79,29 +88,45 @@ class Chat extends Component {
                         });
                     }
                     _this.sendMsg(userName, msg, color, type, toUser, fromUser);
+
+                    const { chat: { newPrivateChat } } = _this.props;
+                    if (newPrivateChat.user !== '系统' && newPrivateChat.msg) {
+                        dispatch({
+                            type: 'chat/savePrivateMsg',
+                            payload: newPrivateChat
+                        });
+                    }
+                }
+                // 聊天区域放不下时滚动条自动往上滚动
+                var showMsg = ReactDOM.findDOMNode(_this.refs.showMsg);
+                if (showMsg) {
+                    if (showMsg.getElementsByTagName('div')[1]) {
+                        showMsg.getElementsByTagName('div')[1].style.marginTop = '40px';
+                    }
+                    showMsg.scrollTop = showMsg.scrollHeight - showMsg.clientHeight;
                 }
             });
-            Notification.requestPermission(function(permission) {});    //询问浏览器是否允许通知
-            this.socket.on('notification', function(user, msg){
+            Notification.requestPermission(function (permission) { });    //询问浏览器是否允许通知
+            this.socket.on('notification', function (user, msg) {
                 if (user !== curUser) {
                     let _notification;
                     if (/class="emoji"/.test(msg)) {
-                        _notification= new Notification(`新消息`,{
-                            body:`${user}：表情`,
-                            icon:'http://localhost:8080/wechat.png'
+                        _notification = new Notification(`新消息`, {
+                            body: `${user}：表情`,
+                            icon: 'http://localhost:8080/wechat.png'
                         });
                     } else {
-                        _notification= new Notification(`新消息`,{
-                            body:`${user}：${msg}`,
-                            icon:'http://localhost:8080/wechat.png'
+                        _notification = new Notification(`新消息`, {
+                            body: `${user}：${msg}`,
+                            icon: 'http://localhost:8080/wechat.png'
                         });
                     }
-                    _notification.onclick = function(event) {
+                    _notification.onclick = function (event) {
                         window.focus();
                     }
-                    setTimeout(function(){
+                    setTimeout(function () {
                         _notification.close(); //设置5秒后自动关闭通知框
-                    },5000);
+                    }, 5000);
                 }
             });
             // 从数据库获取历史消息
@@ -109,7 +134,8 @@ class Chat extends Component {
                 type: 'chat/getMsg'
             });
             dispatch({
-                type: 'chat/getPrivateMsg'
+                type: 'chat/getPrivateMsg',
+                payload: curUser
             });
         }
     }
@@ -123,29 +149,29 @@ class Chat extends Component {
         }
         this.socket.emit('leave_room', curUser);
     }
-    componentDidUpdate() {
-        const { dispatch, chat: { newMsgList, newPrivateChat } } = this.props;
-        // 将消息存到数据库
-        if (newMsgList.user !== '系统' && newMsgList.msg) {
-            dispatch({
-                type: 'chat/saveMsg',
-                payload: newMsgList
-            });
-        }
-        if (newPrivateChat.user !== '系统' && newPrivateChat.msg) {
-            dispatch({
-                type: 'chat/savePrivateMsg',
-                payload: newPrivateChat
-            });
-        }
-        var showMsg = ReactDOM.findDOMNode(this.refs.showMsg);
-        if (showMsg) {
-            if (showMsg.getElementsByTagName('div')[1]) {
-                showMsg.getElementsByTagName('div')[1].style.marginTop = '40px';
-            }
-            showMsg.scrollTop = showMsg.scrollHeight - showMsg.clientHeight;
-        }
-    }
+    // componentDidUpdate() {
+    //     const { dispatch, chat: { newMsgList, newPrivateChat } } = this.props;
+    //     // 将消息存到数据库
+    //     if (newMsgList.user !== '系统' && newMsgList.msg) {
+    //         dispatch({
+    //             type: 'chat/saveMsg',
+    //             payload: newMsgList
+    //         });
+    //     }
+    //     if (newPrivateChat.user !== '系统' && newPrivateChat.msg) {
+    //         dispatch({
+    //             type: 'chat/savePrivateMsg',
+    //             payload: newPrivateChat
+    //         });
+    //     }
+    //     var showMsg = ReactDOM.findDOMNode(this.refs.showMsg);
+    //     if (showMsg) {
+    //         if (showMsg.getElementsByTagName('div')[1]) {
+    //             showMsg.getElementsByTagName('div')[1].style.marginTop = '40px';
+    //         }
+    //         showMsg.scrollTop = showMsg.scrollHeight - showMsg.clientHeight;
+    //     }
+    // }
     sendMsg = (user, msg, color, type, toUser, fromUser) => {
         const { dispatch } = this.props;
         var date = new Date().toLocaleDateString() + ' ' + new Date().toTimeString().substr(0, 8);
@@ -290,9 +316,9 @@ class Chat extends Component {
         const { file, fileName } = this.state;
         if (file !== '') {
             if (curChat === 'group') {
-                this.socket.emit('sendMsg', {file, fileName}, null, 'file');
+                this.socket.emit('sendMsg', { file, fileName }, null, 'file');
             } else {
-                this.socket.emit('sendMsg', {file, fileName}, null, 'file', curChat);
+                this.socket.emit('sendMsg', { file, fileName }, null, 'file', curChat);
             }
             this.socket.emit('notification', curUser, '文件');
         } else {
@@ -340,7 +366,7 @@ class Chat extends Component {
             type: 'user/getPersonal',
             payload: e.target.getAttribute('data-id')
         });
-        this.setState({clickUser: e.target.getAttribute('data-id')});
+        this.setState({ clickUser: e.target.getAttribute('data-id') });
         this.infoShowModal();
     }
     infoShowModal = () => {
@@ -464,9 +490,9 @@ class Chat extends Component {
                     privateChat.splice(i, 1);
                 }
             }
-            var filterPrivateChat = privateChat.filter((item) => 
-                (item.fromUser === curUser || item.fromUser === curChat ) 
-                && (item.toUser === curUser || item.toUser === curChat )
+            var filterPrivateChat = privateChat.filter((item) =>
+                (item.fromUser === curUser || item.fromUser === curChat)
+                && (item.toUser === curUser || item.toUser === curChat)
             );
             var ele = filterPrivateChat.map((item, index) => {
                 return (
@@ -545,12 +571,12 @@ class Chat extends Component {
                     <Alert message="聊天列表" type="success" style={{ textIndent: '2em', marginTop: 15 }} />
                     <div>
                         {chatList && chatList.length > 0 &&
-                            chatList.map(item => 
-                                <li 
-                                    key={item} 
-                                    onClick={this.chatWith} 
+                            chatList.map(item =>
+                                <li
+                                    key={item}
+                                    onClick={this.chatWith}
                                     data-list={item}
-                                    style={item===curChat ? { backgroundColor: '#ccc' } : { backgroundColor: '#eee' }}
+                                    style={item === curChat ? { backgroundColor: '#ccc' } : { backgroundColor: '#eee' }}
                                 >
                                     <a data-list={item}>{item}</a>
                                     <Icon type="close" className={styles.closeChat} data-list={item} onClick={this.closeChat} />

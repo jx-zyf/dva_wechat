@@ -1,7 +1,6 @@
 import request from '../utils/request';
 
 export async function saveChatMsg(params) {
-    console.log(params)
     return request('http://localhost:8080/chat/setChatMsg', {
         method: 'POST',
         body: JSON.stringify(params),
@@ -21,8 +20,8 @@ export async function savePrivateChatMsg(params) {
     });
 }
 
-export async function getPrivateChatMsg() {
-    return request('http://localhost:8080/chat/getPrivateChatMsg', {
+export async function getPrivateChatMsg(params) {
+    return request(`http://localhost:8080/chat/getPrivateChatMsg?curUser=${params}`, {
         method: 'GET',
     });
 }
