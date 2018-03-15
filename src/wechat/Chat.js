@@ -207,10 +207,11 @@ class Chat extends Component {
         if (msg.trim().length > 0) {
             if (curChat === 'group') {
                 this.socket.emit('sendMsg', msg, color, 'text');
+                this.socket.emit('notification', curUser, msg);
             } else {
                 this.socket.emit('sendMsg', msg, color, 'text', curChat);
+                this.socket.emit('notification', curUser, msg, curChat);
             }
-            this.socket.emit('notification', curUser, msg);
         } else {
             message.warning('不能发送空消息');
         }
@@ -261,10 +262,11 @@ class Chat extends Component {
         if (msg.src !== '') {
             if (curChat === 'group') {
                 this.socket.emit('sendMsg', msg, color, 'image');
+                this.socket.emit('notification', curUser, '图片');
             } else {
                 this.socket.emit('sendMsg', msg, color, 'image', curChat);
+                this.socket.emit('notification', curUser, '图片', curChat);
             }
-            this.socket.emit('notification', curUser, '图片');
         } else {
             message.warning('请选择图片！');
         }
@@ -317,10 +319,11 @@ class Chat extends Component {
         if (file !== '') {
             if (curChat === 'group') {
                 this.socket.emit('sendMsg', { file, fileName }, null, 'file');
+                this.socket.emit('notification', curUser, '文件');
             } else {
                 this.socket.emit('sendMsg', { file, fileName }, null, 'file', curChat);
+                this.socket.emit('notification', curUser, '文件', curChat);
             }
-            this.socket.emit('notification', curUser, '文件');
         } else {
             message.warning('请选择文件！');
         }

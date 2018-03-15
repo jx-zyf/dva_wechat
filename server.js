@@ -78,7 +78,13 @@ io.on('connection', function(socket){
         }
     })
     // 消息提示
-    socket.on('notification', function(user, msg){
-	 	io.emit('notification', user, msg);
+    socket.on('notification', function(user, msg, toUser){
+        if (!toUser) {
+	 	    io.sockets.emit('notification', user, msg);
+        } else {
+            // 发给指定用户
+            usocket[toUser].emit('notification', user, msg);
+            usocket[socket.userName].emit('notification', user, msg);
+        }
 	});
 });
